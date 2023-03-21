@@ -1,75 +1,52 @@
-import P from 'prop-types';
-import { createContext, useContext, useReducer, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 
-//actions.js
-export const actions = {
-  CHANGE_TITLE: 'CHANGE_TITLE',
+const useMyHook = (cb, delay = 1000) => {
+  const savedCb = useRef();
+
+  useEffect(() => {
+    savedCb.current = cb;
+  }, [cb]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      savedCb.current();
+    }, delay);
+    return () => clearInterval(interval);
+  }, [delay]);
 };
 
-// data.js
-const globalState = {
-  title: 'O título do contexto',
-  body: 'o body do contexto',
-  counter: 0,
-};
-
-//reducer.js
-export const reducer = (state, action) => {
-  switch (action.type) {
-    case actions.CHANGE_TITLE:
-      console.log('Mudar título');
-      return { ...state, title: action.payload };
-  }
-  return { ...state };
-};
-
-// AppContext
-export const Context = createContext();
-export const AppContext = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, globalState);
-
-  const changeTitle = (payload) => {
-    dispatch({
-      type: actions.CHANGE_TITLE,
-      payload: payload,
-    });
-  };
-
-  return (
-    <Context.Provider value={{ state, changeTitle }}>
-      {children}
-    </Context.Provider>
-  );
-};
-
-AppContext.propTypes = {
-  children: P.node,
-};
-
-//H1/index.jsx
-export const H1 = () => {
-  const context = useContext(Context);
-  const inputRef = useRef();
-
-  return (
-    <>
-      <h1 onClick={() => context.changeTitle(inputRef.current.value)}>
-        {context.state.title}
-      </h1>
-      <input type="text" ref={inputRef}></input>
-    </>
-  );
-};
-
-//App.jsx
 function App() {
+  const [counter, setCounter] = useState(0);
+  const [delay, setDelay] = useState(1000);
+  const [incrementor, setIncrementor] = useState(100);
+
+  useMyHook(() => setCounter((c) => c + 1), delay);
+
   return (
-    <AppContext>
-      <div>
-        <H1></H1>
-      </div>
-    </AppContext>
+    <div>
+      <h1>Contador: {counter}</h1>
+      <h1>Delay atual: {delay}</h1>
+      <button
+        onClick={() => {
+          setDelay((delay) => delay + incrementor);
+        }}
+      >
+        +{incrementor}
+      </button>
+      <button
+        onClick={() => {
+          setDelay((delay) => delay - incrementor);
+        }}
+      >
+        -{incrementor}
+      </button>
+      <input
+        type="number"
+        value={incrementor}
+        onChange={(e) => setIncrementor(Number(e.target.value))}
+      />
+    </div>
   );
 }
 
