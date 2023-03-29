@@ -27,6 +27,7 @@ export const Posts = () => {
     });
 
     return () => {
+      //Limpando o isMounted para não executar a função dispatch em um unmounted component
       isMounted.current = false;
     };
   }, [postsDispatch]);
